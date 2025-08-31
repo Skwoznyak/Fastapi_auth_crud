@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход и регистрация - Resume App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">Resume App</h1>
+    <div class="flex mb-4">
+      <button id="loginTab" class="flex-1 p-2 bg-blue-500 text-white rounded-l-lg">Вход</button>
+      <button id="registerTab" class="flex-1 p-2 bg-gray-300 text-gray-700 rounded-r-lg">Регистрация</button>
+    </div>
+    <p id="error" class="text-red-500 mb-4 hidden"></p>
+
+    <!-- Форма входа -->
+    <form id="loginForm" class="block">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="loginEmail">Email</label>
+        <input
+          type="email"
+          id="loginEmail"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="loginPassword">Пароль</label>
+        <input
+          type="password"
+          id="loginPassword"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+      >
+        Войти
+      </button>
+    </form>
+
+    <!-- Форма регистрации -->
+    <form id="registerForm" class="hidden">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="registerEmail">Email</label>
+        <input
+          type="email"
+          id="registerEmail"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="registerPassword">Пароль</label>
+        <input
+          type="password"
+          id="registerPassword"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+      >
+        Зарегистрироваться
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const API_URL = '/api';
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const errorElement = document.getElementById('error');
+
+    // Переключение вкладок
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('bg-blue-500', 'text-white');
+      loginTab.classList.remove('bg-gray-300', 'text-gray-700');
+      registerTab.classList.add('bg-gray-300', 'text-gray-700');
+      registerTab.classList.remove('bg-blue-500', 'text-white');
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      errorElement.classList.add('hidden');
+    });
+
+    registerTab.addEventListener('click', () => {
+      registerTab.classList.add('bg-blue-500', 'text-white');
+      registerTab.classList.remove('bg-gray-300', 'text-gray-700');
+      loginTab.classList.add('bg-gray-300', 'text-gray-700');
+      loginTab.classList.remove('bg-blue-500', 'text-white');
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      errorElement.classList.add('hidden');
+    });
+
+    // Обработка входа
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        console.log('Sending login request:', { email, url: `${API_URL}/login` });
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+        console.log('Response ok:', response.ok);
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Login error response:', errorData);
+          throw new Error(errorData.detail || 'Ошибка авторизации');
+        }
+
+        const data = await response.json();
+        console.log('Login response:', data);
+        console.log('Cookies after login:', document.cookie);
+
+        console.log('Redirecting to resumes.html');
+        window.location.href = 'resumes.html';
+      } catch (err) {
+        console.error('Fetch error:', err.message, err);
+        errorElement.textContent = `Ошибка: ${err.message}`;
+        errorElement.classList.remove('hidden');
+      }
+    });
+
+    // Обработка регистрации
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+
+      try {
+        console.log('Sending register request:', { email, url: `${API_URL}/register` });
+        const response = await fetch(`${API_URL}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
+        });
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Register error response:', errorData);
+          throw new Error(errorData.detail || 'Ошибка регистрации');
+        }
+
+        console.log('Registration successful');
+        errorElement.textContent = 'Регистрация успешна! Пожалуйста, войдите.';
+        errorElement.classList.remove('text-red-500', 'hidden');
+        errorElement.classList.add('text-green-500');
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        loginTab.classList.add('bg-blue-500', 'text-white');
+        loginTab.classList.remove('bg-gray-300', 'text-gray-700');
+        registerTab.classList.add('bg-gray-300', 'text-gray-700');
+        registerTab.classList.remove('bg-blue-500', 'text-white');
+      } catch (err) {
+        console.error('Fetch error:', err.message, err);
+        errorElement.textContent = `Ошибка: ${err.message}`;
+        errorElement.classList.remove('hidden');
+        errorElement.classList.add('text-red-500');
+      }
+    });
+  </script>
+</body>
+</html>

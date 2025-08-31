@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Резюме - Resume App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6">Мои резюме</h1>
+    <p id="error" class="text-red-500 mb-4 hidden"></p>
+
+    <!-- Форма для добавления резюме -->
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Добавить новое резюме</h2>
+      <form id="addResumeForm">
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="title">Заголовок</label>
+          <input
+            type="text"
+            id="title"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="context">Содержание</label>
+          <textarea
+            id="context"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Добавить
+        </button>
+      </form>
+    </div>
+
+    <!-- Список резюме -->
+    <h2 class="text-xl font-semibold mb-4">Список резюме</h2>
+    <ul id="resumeList" class="space-y-4"></ul>
+
+    <!-- Детали резюме -->
+    <div id="resumeDetail" class="hidden mt-6">
+      <h2 id="resumeTitle" class="text-xl font-semibold mb-2"></h2>
+      <p id="resumeContext" class="bg-white p-4 rounded shadow mb-4"></p>
+      <div class="flex space-x-2">
+        <button
+          id="editButton"
+          class="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600"
+        >
+          Редактировать
+        </button>
+        <button
+          id="deleteButton"
+          class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+        >
+          Удалить
+        </button>
+        <button
+          id="improveButton"
+          class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+        >
+          Улучшить
+        </button>
+      </div>
+      <!-- Форма редактирования -->
+      <form id="editResumeForm" class="hidden mt-4">
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="editTitle">Заголовок</label>
+          <input
+            type="text"
+            id="editTitle"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="editContext">Содержание</label>
+          <textarea
+            id="editContext"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Сохранить
+        </button>
+        <button
+          type="button"
+          id="cancelEdit"
+          class="ml-2 bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
+        >
+          Отмена
+        </button>
+      </form>
+      <!-- Улучшенная версия -->
+      <div id="improvedContext" class="hidden mt-4 bg-white p-4 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Улучшенная версия</h3>
+        <p id="improvedText"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api';
+    const resumeList = document.getElementById('resumeList');
+    const errorElement = document.getElementById('error');
+    const resumeDetail = document.getElementById('resumeDetail');
+    const resumeTitle = document.getElementById('resumeTitle');
+    const resumeContext = document.getElementById('resumeContext');
+    const editButton = document.getElementById('editButton');
+    const deleteButton = document.getElementById('deleteButton');
+    const improveButton = document.getElementById('improveButton');
+    const editResumeForm = document.getElementById('editResumeForm');
+    const editTitle = document.getElementById('editTitle');
+    const editContext = document.getElementById('editContext');
+    const cancelEdit = document.getElementById('cancelEdit');
+    const improvedContext = document.getElementById('improvedContext');
+    const improvedText = document.getElementById('improvedText');
+    let currentResumeId = null;
+
+    // Загрузка списка резюме
+    async function fetchResumes() {
+      try {
+        const response = await fetch(`${API_URL}/resumes`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (response.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Ошибка при загрузке резюме');
+        }
+        const resumes = await response.json();
+        renderResumes(resumes);
+      } catch (err) {
+        errorElement.textContent = err.message;
+        errorElement.classList.remove('hidden');
+      }
+    }
+
+    // Отображение списка резюме
+    function renderResumes(resumes) {
+      resumeList.innerHTML = '';
+      if (resumes.length === 0) {
+        resumeList.innerHTML = '<p>Резюме пока нет</p>';
+        return;
+      }
+      resumes.forEach((resume) => {
+        const li = document.createElement('li');
+        li.className = 'bg-white p-4 rounded shadow';
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = resume.title;
+        a.className = 'text-blue-500 hover:underline';
+        a.onclick = () => showResume(resume.id, resume.title, resume.context);
+        li.appendChild(a);
+        resumeList.appendChild(li);
+      });
+    }
+
+    // Отображение деталей резюме
+    async function showResume(id, title, context) {
+      currentResumeId = id;
+      resumeTitle.textContent = title;
+      resumeContext.textContent = context;
+      resumeDetail.classList.remove('hidden');
+      editResumeForm.classList.add('hidden');
+      improvedContext.classList.add('hidden');
+      editButton.onclick = () => {
+        editTitle.value = title;
+        editContext.value = context;
+        editResumeForm.classList.remove('hidden');
+        editButton.classList.add('hidden');
+      };
+      deleteButton.onclick = () => deleteResume(id);
+      improveButton.onclick = () => improveResume(id);
+      window.scrollTo(0, resumeDetail.offsetTop);
+    }
+
+    // Добавление нового резюме
+    document.getElementById('addResumeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const context = document.getElementById('context').value;
+
+      try {
+        const response = await fetch(`${API_URL}/resumes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title, context }),
+        });
+        if (response.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Ошибка при добавлении резюме');
+        }
+        document.getElementById('title').value = '';
+        document.getElementById('context').value = '';
+        fetchResumes();
+      } catch (err) {
+        errorElement.textContent = err.message;
+        errorElement.classList.remove('hidden');
+      }
+    });
+
+    // Редактирование резюме
+    editResumeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = editTitle.value;
+      const context = editContext.value;
+
+      try {
+        const response = await fetch(`${API_URL}/resumes/${currentResumeId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title, context }),
+        });
+        if (response.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Ошибка при редактировании резюме');
+        }
+        editResumeForm.classList.add('hidden');
+        editButton.classList.remove('hidden');
+        resumeTitle.textContent = title;
+        resumeContext.textContent = context;
+        fetchResumes();
+      } catch (err) {
+        errorElement.textContent = err.message;
+        errorElement.classList.remove('hidden');
+      }
+    });
+
+    // Отмена редактирования
+    cancelEdit.addEventListener('click', () => {
+      editResumeForm.classList.add('hidden');
+      editButton.classList.remove('hidden');
+      errorElement.classList.add('hidden');
+    });
+
+    // Удаление резюме
+    async function deleteResume(resumeId) {
+      if (!confirm('Вы уверены, что хотите удалить это резюме?')) return;
+      try {
+        const response = await fetch(`${API_URL}/resumes/${resumeId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (response.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Ошибка при удалении резюме');
+        }
+        resumeDetail.classList.add('hidden');
+        fetchResumes();
+      } catch (err) {
+        errorElement.textContent = err.message;
+        errorElement.classList.remove('hidden');
+      }
+    }
+
+    // Улучшение резюме
+    async function improveResume(resumeId) {
+      try {
+        const response = await fetch(`${API_URL}/resumes/${resumeId}/improve`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (response.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Ошибка при улучшении резюме');
+        }
+        const data = await response.json();
+        improvedText.textContent = data.improved_context;
+        improvedContext.classList.remove('hidden');
+      } catch (err) {
+        errorElement.textContent = err.message;
+        errorElement.classList.remove('hidden');
+      }
+    }
+
+    // Инициализация
+    fetchResumes();
+  </script>
+</body>
+</html>
