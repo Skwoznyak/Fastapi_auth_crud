@@ -33,19 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Явная обработка OPTIONS-запросов для всех маршрутов
-@app.options("/{path:path}")
-async def handle_options():
-    return JSONResponse(
-        status_code=200,
-        content={},
-        headers={
-            "Access-Control-Allow-Origin": "https://fastapi-auth-crud-1-3mqp.onrender.com/",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Credentials": "true",
-        }
-    )
+
 
 async def get_current_user(request: Request, session: SessionDep):
     try:
