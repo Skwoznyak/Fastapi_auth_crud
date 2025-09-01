@@ -15,7 +15,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Настройка AuthX для JWT
 config = AuthXConfig()
 config.JWT_SECRET_KEY = 'SECRET_KEY'  # Замените на безопасный ключ в продакшене
-config.JWT_ACCESS_COOKIE_NAME = 'my_access_token'
+config.JWT_ACCESS_COOKIE_NAME = 'access_token'
 config.JWT_TOKEN_LOCATION = ['cookies']
 config.JWT_COOKIE_CSRF_PROTECT = False
 config.JWT_DECODE_ALGORITHMS = ["HS256"]
@@ -27,7 +27,7 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://fron-api.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
