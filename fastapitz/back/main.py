@@ -100,8 +100,9 @@ async def login(cred: UserSchema, response: Response, session: SessionDep):
         key=config.JWT_ACCESS_COOKIE_NAME,
         value=token,
         httponly=True,
-        samesite="lax",
-        secure=True,
+        samesite="none",  # ← Важно для кросс-домена!
+        secure=True,      # ← True для HTTPS
+        domain=".onrender.com",  # ← Общий домен
         path="/",
     )
     print(f"Cookie set: {config.JWT_ACCESS_COOKIE_NAME}={token}")
