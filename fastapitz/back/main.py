@@ -113,7 +113,7 @@ async def login(cred: UserSchema, response: Response, session: SessionDep):
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=True,
         path="/",
     )
     print(f"Cookie set: {config.JWT_ACCESS_COOKIE_NAME}={token}")
