@@ -40,7 +40,7 @@ async def handle_options():
         status_code=200,
         content={},
         headers={
-            "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
+            "Access-Control-Allow-Origin": "https://fastapi-frontend.onrender.com",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Credentials": "true",
