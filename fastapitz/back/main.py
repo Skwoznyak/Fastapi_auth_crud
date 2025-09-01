@@ -27,7 +27,7 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fron-api.onrender.com"]
+    allow_origins=["https://fron-api.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
