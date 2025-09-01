@@ -27,7 +27,7 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fastapi-auth-crud-1-3mqp.onrender.com/"],  # Указан точный origin для фронтенда
+    allow_origins=["https://fron-api.onrender.com"],  # Указан точный origin для фронтенда
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
