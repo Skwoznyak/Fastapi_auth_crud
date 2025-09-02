@@ -100,7 +100,7 @@ async def login(cred: UserSchema, response: Response, session: SessionDep):
         key=config.JWT_ACCESS_COOKIE_NAME,
         value=token,
         httponly=True,
-        samesite="lax",  # ← Важно для кросс-домена!
+        samesite="none",  # ← Важно для кросс-домена!
         secure=True,      # ← True для HTTPS
         path="/",
     )
